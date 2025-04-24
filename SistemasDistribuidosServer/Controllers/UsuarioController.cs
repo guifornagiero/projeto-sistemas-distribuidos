@@ -17,6 +17,8 @@ namespace SistemasDistribuidosServer.Controllers
             if (usuarios == null || usuarios.Count == 0)
                 return NotFound();
 
+            Console.WriteLine(usuarios);
+
             return Ok(usuarios);
         }
     }
