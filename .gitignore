@@ -1,8 +1,8 @@
 # .NET (Server → SistemasDistribuidosServer)
-Server/SistemasDistribuidosServer/bin/
-Server/SistemasDistribuidosServer/obj/
-Server/SistemasDistribuidosServer/*.user
-Server/SistemasDistribuidosServer/*.vs/
+SistemasDistribuidosServer/bin/
+SistemasDistribuidosServer/obj/
+SistemasDistribuidosServer/*.user
+SistemasDistribuidosServer/*.vs/
 
 # Python (Proxy)
 Proxy/__pycache__/
