@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "z7UvRRKoAFIkzE2tEpgukcqJaMf0p7LeSQ0WVgGgfpc=",
+  "Source": "SistemasDistribuidosServer",
+  "BasePath": "_content/SistemasDistribuidosServer",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
