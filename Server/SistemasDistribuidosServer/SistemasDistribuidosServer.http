@@ -1,0 +1,6 @@
+@SistemasDistribuidosServer_HostAddress = http://localhost:5206
+
+GET {{SistemasDistribuidosServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
