@@ -10,5 +10,15 @@ namespace SistemasDistribuidosServer.Servicos
         {
             return _repository.GetAll();
         }
+
+        public Usuario GetById(int id)
+        {
+            return _repository.GetById(id);
+        }
+
+        public Usuario GetByLogin(string login)
+        {
+            return _repository.GetByLogin(login.ToLower());
+        }
     }
 }

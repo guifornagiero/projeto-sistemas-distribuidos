@@ -8,7 +8,6 @@ namespace SistemasDistribuidosServer.Controllers
     [Route("[controller]")]
     public class UsuarioController(IUsuarioService _usuarioService) : ControllerBase
     {
-
         [HttpGet]
         public ActionResult<List<Usuario>> GetUsuarios()
         {
@@ -20,6 +19,19 @@ namespace SistemasDistribuidosServer.Controllers
             Console.WriteLine(usuarios);
 
             return Ok(usuarios);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Usuario> GetById([FromRoute] int id)
+        {
+            Usuario usuario = _usuarioService.GetById(id);
+
+            if (usuario == null) 
+                return NotFound();
+
+            Console.WriteLine(usuario);
+
+            return Ok(usuario);
         }
     }
 }

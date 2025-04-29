@@ -13,9 +13,11 @@ builder.Services.AddSwaggerGen();
 
 // Servicos
 builder.Services.AddSingleton<IUsuarioService, UsuarioService>();
+builder.Services.AddSingleton<IPostagemService, PostagemService>();
 
 // Repositorios
 builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddSingleton<IPostagemRepository, PostagemRepository>();
 
 #endregion
 
