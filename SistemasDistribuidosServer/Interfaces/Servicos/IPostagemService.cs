@@ -6,6 +6,6 @@ namespace SistemasDistribuidosServer.Interfaces.Servicos
     public interface IPostagemService
     {
         List<Postagem> GetPostagens();
-        Postagem Publicar(string criadorLogin, PostagemDTO postagem);
+        Postagem Publicar(PostagemDTO postagem);
     }
 }

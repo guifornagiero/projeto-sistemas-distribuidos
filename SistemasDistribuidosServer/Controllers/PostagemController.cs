@@ -23,7 +23,7 @@ namespace SistemasDistribuidosServer.Controllers
         [HttpPost]
         public ActionResult<Postagem> Publicar([FromBody] PostagemDTO postagem)
         {
-            Postagem postCriado = _postagemService.Publicar(postagem.CriadorLogin, postagem);
+            Postagem postCriado = _postagemService.Publicar(postagem);
 
             if (postCriado == null)
                 return NotFound();
