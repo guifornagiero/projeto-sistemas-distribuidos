@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 // Servicos
 builder.Services.AddSingleton<IUsuarioService, UsuarioService>();
 builder.Services.AddSingleton<IPostagemService, PostagemService>();
+builder.Services.AddSingleton<INotificadorService, NotificadorService>();
 
 // Repositorios
 builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();

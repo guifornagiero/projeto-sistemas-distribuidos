@@ -24,5 +24,29 @@ namespace SistemasDistribuidosServer.Repositorios
         {
             return _usuarios.Where(u => u.Login == login).FirstOrDefault();
         }
+
+        public Usuario Update(Usuario usuario)
+        {
+            var usuarioExistente = _usuarios.FirstOrDefault(u => u.Id == usuario.Id);
+
+            if (usuarioExistente == null)
+                throw new InvalidOperationException("Usuário não existe no database para dar update.");
+
+            usuarioExistente.Nome = usuario.Nome;
+            usuarioExistente.Login = usuario.Login;
+            usuarioExistente.Seguidores = usuario.Seguidores;
+            usuarioExistente.Seguindo = usuario.Seguindo;
+
+            return usuarioExistente;
+        }
+
+        public Usuario Insert(Usuario usuario)
+        {
+            if (_usuarios.Any(u => u.Login == usuario.Login))
+                throw new InvalidOperationException("Já existe um usuário com esse login.");
+
+            _usuarios.Add(usuario);
+            return usuario;
+        }
     }
 }

@@ -7,5 +7,7 @@ namespace SistemasDistribuidosServer.Interfaces.Servicos
         List<Usuario> GetAll();
         Usuario GetById(int id);
         Usuario GetByLogin(string login);
+        Usuario Seguir(string login, string loginToFollow);
+        List<Notificacao> GetNotificacoes(string login);
     }
 }

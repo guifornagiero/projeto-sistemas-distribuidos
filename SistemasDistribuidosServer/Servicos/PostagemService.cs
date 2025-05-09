@@ -6,7 +6,8 @@ using SistemasDistribuidosServer.Interfaces.Servicos;
 namespace SistemasDistribuidosServer.Servicos
 {
     public class PostagemService(IUsuarioService _usuarioService, 
-                                 IPostagemRepository _repository) : IPostagemService
+                                 IPostagemRepository _repository,
+                                 INotificadorService _notificadorService) : IPostagemService
     {
         public List<Postagem> GetPostagens()
         {
@@ -21,8 +22,11 @@ namespace SistemasDistribuidosServer.Servicos
                 ?? throw new KeyNotFoundException($"Criador não encontrado com login - {postagem.CriadorLogin}");
 
             Postagem post = new(postagem, criador);
+            _repository.Publicar(post);
 
-            return _repository.Publicar(post);
+            _notificadorService.NotificarSeguidores(criador, post);
+
+            return post;
         }
 
         private void ValidarCampos(PostagemDTO postagem)

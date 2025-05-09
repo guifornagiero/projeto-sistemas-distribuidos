@@ -8,7 +8,7 @@ namespace SistemasDistribuidosServer.Controllers
     [Route("[controller]")]
     public class UsuarioController(IUsuarioService _usuarioService) : ControllerBase
     {
-        [HttpGet]
+        [HttpGet("GetAll")]
         public ActionResult<List<Usuario>> GetUsuarios()
         {
             List<Usuario> usuarios = _usuarioService.GetAll();
@@ -32,6 +32,20 @@ namespace SistemasDistribuidosServer.Controllers
             Console.WriteLine(usuario);
 
             return Ok(usuario);
+        }
+
+        [HttpPost("Seguir")]
+        public ActionResult<Usuario> Seguir([FromHeader] string userLogin, [FromBody] string loginToFollow)
+        {
+            Usuario user = _usuarioService.Seguir(userLogin, loginToFollow);
+            return Ok(user);
+        }
+
+        [HttpGet("Notificacoes/{login}")]
+        public ActionResult<List<Notificacao>> GetNotificacoes([FromRoute] string login)
+        {
+            List<Notificacao> notificacoes = _usuarioService.GetNotificacoes(login);
+            return Ok(notificacoes);
         }
     }
 }

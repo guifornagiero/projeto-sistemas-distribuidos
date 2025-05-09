@@ -7,5 +7,7 @@ namespace SistemasDistribuidosServer.Interfaces.Repositorios
         List<Usuario> GetAll();
         Usuario GetById(int id);
         Usuario GetByLogin(string login);
+        Usuario Update(Usuario usuario);
+        Usuario Insert(Usuario usuario);
     }
 }
