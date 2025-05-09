@@ -15,10 +15,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IUsuarioService, UsuarioService>();
 builder.Services.AddSingleton<IPostagemService, PostagemService>();
 builder.Services.AddSingleton<INotificadorService, NotificadorService>();
+builder.Services.AddSingleton<IChatService, ChatService>();
 
 // Repositorios
 builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddSingleton<IPostagemRepository, PostagemRepository>();
+builder.Services.AddSingleton<IChatRepository, ChatRepository>();
 
 #endregion
 
