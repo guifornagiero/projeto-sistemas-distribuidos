@@ -4,14 +4,14 @@ namespace SistemasDistribuidosServer.Entidades
 {
     public class Usuario
     {
-        public int Id { get; set; } = new Random().Next(100, 1000);
+        public int Id { get; set; }
         public string Nome { get; set; }
         public string Login { get; set; }
         public List<UsuarioDTO> Seguidores { get; set; } = [];
         public List<UsuarioDTO> Seguindo { get; set; } = [];
         public List<Notificacao> Notificacoes { get; set; } = [];
 
-        public Usuario(string nome, string login)
+        public Usuario(int id, string nome, string login)
         {
             Nome = nome;
             Login = login;

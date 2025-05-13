@@ -5,10 +5,10 @@ namespace SistemasDistribuidosServer.Repositorios
 {
     public class UsuarioRepository : IUsuarioRepository
     {
-        private readonly List<Usuario> _usuarios = [new("Guilherme", "guifornagiero"), 
-                                                    new("Paulo", "paulobrito"), 
-                                                    new("Pedro", "pedrobento"), 
-                                                    new("Gian", "gianluca")];
+        private readonly List<Usuario> _usuarios = [new(1, "Guilherme", "guifornagiero"), 
+                                                    new(2, "Paulo", "paulobrito"), 
+                                                    new(3, "Pedro", "pedrobento"), 
+                                                    new(4, "Gian", "gianluca")];
 
         public List<Usuario> GetAll()
         {
