@@ -13,6 +13,7 @@ namespace SistemasDistribuidosServer.Entidades
 
         public Usuario(int id, string nome, string login)
         {
+            Id = id;
             Nome = nome;
             Login = login;
         }
