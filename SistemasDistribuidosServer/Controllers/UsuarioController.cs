@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SistemasDistribuidosServer.Entidades;
+using SistemasDistribuidosServer.Entidades.DTOs;
 using SistemasDistribuidosServer.Interfaces.Servicos;
 
 namespace SistemasDistribuidosServer.Controllers
@@ -35,9 +36,9 @@ namespace SistemasDistribuidosServer.Controllers
         }
 
         [HttpPost("Seguir")]
-        public ActionResult<Usuario> Seguir([FromHeader] string userLogin, [FromBody] string loginToFollow)
+        public ActionResult<Usuario> Seguir([FromBody] SeguirDTO dto)
         {
-            Usuario user = _usuarioService.Seguir(userLogin, loginToFollow);
+            Usuario user = _usuarioService.Seguir(dto.LoginQuerSeguir, dto.LoginParaSeguir);
             return Ok(user);
         }
 

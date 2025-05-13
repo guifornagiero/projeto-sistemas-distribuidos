@@ -9,6 +9,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontend", policy =>
+    {
+        policy
+            .WithOrigins("*") // ou "*" para todos, com cuidado!
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 #region Injecao de dependencia
 
 // Servicos
@@ -33,6 +44,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("PermitirFrontend");
 
 app.UseAuthorization();
 
