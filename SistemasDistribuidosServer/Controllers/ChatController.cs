@@ -15,6 +15,13 @@ namespace SistemasDistribuidosServer.Controllers
             return Ok(mensagens);
         }
 
+        [HttpGet("Chat/{usuario1}&{usuario2}")]
+        public ActionResult<List<Mensagem>> GetChatByUsers([FromRoute] string usuario1, [FromRoute] string usuario2)
+        {
+            Chat chat = _chatService.GetChatEntity(usuario1, usuario2);
+            return Ok(chat);
+        }
+
         [HttpPost("EnviarMensagem/{enviando}&{recebendo}")]
         public ActionResult<Mensagem> EnviarMensagem([FromRoute] string enviando, [FromRoute] string recebendo, [FromBody] string mensagem)
         {
