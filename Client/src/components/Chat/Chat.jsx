@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatDate } from "../../util/util";
 
-function Chat({ remetente }) {
+function Chat({ usuario }) {
     const [mensagens, setMensagens] = useState(chat.mensagens);
     const [novaMensagem, setNovaMensagem] = useState("");
     const messagesEndRef = useRef(null);
@@ -23,8 +23,8 @@ function Chat({ remetente }) {
             id: mensagens.length + 1,
             remetente: {
                 id: 999,
-                nome: remetente,
-                login: remetente
+                nome: usuario.nome,
+                login: usuario.login
             },
             texto: textoTrim,
             enviadaEm: new Date().toISOString()
@@ -46,7 +46,7 @@ function Chat({ remetente }) {
                     <div
                         key={mensagem.id}
                         className={`p-3 border rounded-lg shadow-sm ${
-                            mensagem.remetente.login === remetente
+                            mensagem.remetente.login === usuario.login
                                 ? "bg-blue-50 border-blue-300 self-end"
                                 : "bg-gray-50 border-gray-300"
                         }`}
@@ -54,7 +54,7 @@ function Chat({ remetente }) {
                         <div className="flex justify-between items-center mb-1">
                             <span
                                 className={`font-semibold ${
-                                    mensagem.remetente.login === remetente
+                                    mensagem.remetente.login === usuario.login
                                         ? "text-blue-700"
                                         : "text-gray-700"
                                 }`}
