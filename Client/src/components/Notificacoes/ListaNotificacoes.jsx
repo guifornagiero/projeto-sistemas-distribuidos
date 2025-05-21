@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Notificacao from "./Notificacao";
+import { TimeContext } from "../../contexts/TimeContext";
 
 function ListaNotificacoes({ notifications }) {
     const endRef = useRef(null);
+    const time = useContext(TimeContext);
     const [firstLoad, setFirstLoad] = useState(true);
 
     useEffect(() => {
