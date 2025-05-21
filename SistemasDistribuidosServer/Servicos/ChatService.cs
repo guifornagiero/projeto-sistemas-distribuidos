@@ -38,5 +38,17 @@ namespace SistemasDistribuidosServer.Servicos
 
             return chat.Mensagens;
         }
+
+        public Chat GetChatEntity(string usuario1, string usuario2)
+        {
+            if (usuario1 == usuario2)
+                throw new ArgumentException("Usuário que envia e que recebe não podem ser iguais.");
+
+            UsuarioDTO user1 = _usuarioRepository.GetByLogin(usuario1).MapToDTO();
+            UsuarioDTO user2 = _usuarioRepository.GetByLogin(usuario2).MapToDTO();
+
+            Chat chat = _chatRepository.GetByUsuarios(user1.Login, user2.Login);
+            return chat;
+        }
     }
 }

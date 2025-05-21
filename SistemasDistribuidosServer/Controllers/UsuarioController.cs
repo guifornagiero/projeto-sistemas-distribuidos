@@ -48,5 +48,12 @@ namespace SistemasDistribuidosServer.Controllers
             List<Notificacao> notificacoes = _usuarioService.GetNotificacoes(login);
             return Ok(notificacoes);
         }
+
+        [HttpGet("Login/{login}")]
+        public ActionResult<Usuario> GetByLogin([FromRoute] string login)
+        {
+            Usuario usuario = _usuarioService.GetByLogin(login);
+            return Ok(usuario);
+        }
     }
 }

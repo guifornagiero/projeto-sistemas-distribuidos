@@ -17,6 +17,7 @@ Client/npm-debug.log*
 Client/yarn-error.log*
 Client/dist/
 Client/build/
+Client/package-lock.json
 
 # Outros
 *.log
