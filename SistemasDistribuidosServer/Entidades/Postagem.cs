@@ -12,13 +12,23 @@ namespace SistemasDistribuidosServer.Entidades
         public string CriadorLogin { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.Now;
 
-        public Postagem(PostagemDTO postagem, Usuario criador)
+        // Parameterless constructor for JSON deserialization
+        public Postagem() { }
+
+        // Private constructor for creating from DTO
+        private Postagem(PostagemDTO postagem, Usuario criador)
         {
             Titulo = postagem.Titulo;
             Conteudo = postagem.Conteudo;
             CriadorId = criador.Id;
             CriadorNome = criador.Nome;
             CriadorLogin = criador.Login;
+        }
+
+        // Factory method to create from DTO
+        public static Postagem FromDTO(PostagemDTO postagem, Usuario criador)
+        {
+            return new Postagem(postagem, criador);
         }
     }
 
