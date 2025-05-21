@@ -15,6 +15,7 @@ function LoginProvider({ children }) {
                 const userData = await UsuarioService.getByLogin(username);
                 if (userData) {
                     sessionStorage.setItem("usuario", JSON.stringify(userData));
+                    sessionStorage.setItem("time", time);
                     setUsuario(userData);
                 } else {
                     alert("Usuário inválido no sistema!");
@@ -32,6 +33,7 @@ function LoginProvider({ children }) {
         if (stored) {
             try {
                 setUsuario(JSON.parse(stored));
+                setTime(sessionStorage.getItem("time"))
             } catch (e) {
                 console.error("Erro ao converter usuário:", e);
             }
