@@ -5,6 +5,13 @@ using SistemasDistribuidosServer.Servicos;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Pega a porta da URL
+var urls = builder.Configuration["urls"] ?? "http://localhost:5001";
+var porta = urls.Split(":").Last();
+builder.Configuration["PortaServidor"] = porta;
+
+Console.WriteLine($"Servidor iniciando na porta: {porta}");
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -27,6 +34,8 @@ builder.Services.AddSingleton<IUsuarioService, UsuarioService>();
 builder.Services.AddSingleton<IPostagemService, PostagemService>();
 builder.Services.AddSingleton<INotificadorService, NotificadorService>();
 builder.Services.AddSingleton<IChatService, ChatService>();
+builder.Services.AddSingleton<IEventoService, RedisEventoService>();
+builder.Services.AddHostedService<EventoListenerService>();
 
 // Repositorios
 builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();

@@ -21,7 +21,7 @@ namespace SistemasDistribuidosServer.Servicos
             Usuario criador = _usuarioService.GetByLogin(postagem.CriadorLogin) 
                 ?? throw new KeyNotFoundException($"Criador não encontrado com login - {postagem.CriadorLogin}");
 
-            Postagem post = new(postagem, criador);
+            Postagem post = Postagem.FromDTO(postagem, criador);
             _repository.Publicar(post);
 
             _notificadorService.NotificarSeguidores(criador, post);
