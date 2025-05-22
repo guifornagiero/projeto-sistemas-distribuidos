@@ -14,10 +14,29 @@ namespace SistemasDistribuidosServer.Servicos
 
         public RedisEventoService(IConfiguration configuration)
         {
-            _redis = ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis"));
-            _portaServidor = configuration["PortaServidor"];
-            _subscriber = _redis.GetSubscriber();
-            Console.WriteLine($"RedisEventoService inicializado na porta {_portaServidor}");
+            try
+            {
+                string redisConnectionString = configuration.GetConnectionString("Redis");
+                if (string.IsNullOrEmpty(redisConnectionString))
+                {
+                    redisConnectionString = "localhost:6379,abortConnect=false";
+                    Console.WriteLine("Aviso: String de conexão Redis não encontrada na configuração. Usando padrão: " + redisConnectionString);
+                }
+                else
+                {
+                    Console.WriteLine("Conectando ao Redis usando: " + redisConnectionString);
+                }
+
+                _redis = ConnectionMultiplexer.Connect(redisConnectionString);
+                _portaServidor = configuration["PortaServidor"] ?? "5001";
+                _subscriber = _redis.GetSubscriber();
+                Console.WriteLine($"RedisEventoService inicializado na porta {_portaServidor}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao inicializar RedisEventoService: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task PublicarPostagem(Postagem postagem)

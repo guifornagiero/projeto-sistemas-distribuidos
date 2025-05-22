@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using SistemasDistribuidosServer.Entidades;
 using SistemasDistribuidosServer.Interfaces.Repositorios;
@@ -13,18 +14,29 @@ namespace SistemasDistribuidosServer.Servicos
         private readonly IChatRepository _chatRepository;
         private readonly ISubscriber _subscriber;
         private readonly string _portaServidor;
+        private readonly ILogger<EventoListenerService> _logger;
 
         public EventoListenerService(
             IConfiguration configuration,
             IPostagemRepository postagemRepository,
-            IChatRepository chatRepository)
+            IChatRepository chatRepository,
+            ILogger<EventoListenerService> logger)
         {
-            _redis = ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis"));
+            _logger = logger;
+            
+            string redisConnectionString = configuration.GetConnectionString("Redis");
+            if (string.IsNullOrEmpty(redisConnectionString))
+            {
+                redisConnectionString = "localhost:6379,abortConnect=false";
+                _logger.LogWarning("String de conexão Redis não encontrada na configuração. Usando padrão: " + redisConnectionString);
+            }
+            
+            _redis = ConnectionMultiplexer.Connect(redisConnectionString);
             _postagemRepository = postagemRepository;
             _chatRepository = chatRepository;
             _subscriber = _redis.GetSubscriber();
-            _portaServidor = configuration["PortaServidor"];
-            Console.WriteLine($"EventoListenerService inicializado na porta {_portaServidor}");
+            _portaServidor = configuration["PortaServidor"] ?? "5001";
+            _logger.LogInformation($"EventoListenerService inicializado na porta {_portaServidor}");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -39,14 +51,18 @@ namespace SistemasDistribuidosServer.Servicos
                         var postagem = JsonSerializer.Deserialize<Postagem>(message);
                         if (postagem != null)
                         {
-                            Console.WriteLine($"Servidor {_portaServidor} recebeu postagem: {postagem.Titulo}");
+                            _logger.LogInformation($"Servidor {_portaServidor} recebeu postagem: {postagem.Titulo}");
                             _postagemRepository.Publicar(postagem);
-                            Console.WriteLine($"Servidor {_portaServidor} sincronizou postagem: {postagem.Titulo}");
+                            _logger.LogInformation($"Servidor {_portaServidor} sincronizou postagem: {postagem.Titulo}");
                         }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError($"Erro de deserialização de postagem no servidor {_portaServidor}: {ex.Message}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Erro ao processar postagem no servidor {_portaServidor}: {ex.Message}");
+                        _logger.LogError($"Erro ao processar postagem no servidor {_portaServidor}: {ex.Message}");
                     }
                 });
 
@@ -57,14 +73,18 @@ namespace SistemasDistribuidosServer.Servicos
                         var chat = JsonSerializer.Deserialize<Chat>(message);
                         if (chat != null)
                         {
-                            Console.WriteLine($"Servidor {_portaServidor} recebeu chat entre {chat.Usuario1} e {chat.Usuario2}");
+                            _logger.LogInformation($"Servidor {_portaServidor} recebeu chat entre {chat.Usuario1} e {chat.Usuario2}");
                             _chatRepository.CriarChat(chat.Usuario1, chat.Usuario2);
-                            Console.WriteLine($"Servidor {_portaServidor} sincronizou chat entre {chat.Usuario1} e {chat.Usuario2}");
+                            _logger.LogInformation($"Servidor {_portaServidor} sincronizou chat entre {chat.Usuario1} e {chat.Usuario2}");
                         }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError($"Erro de deserialização de chat no servidor {_portaServidor}: {ex.Message}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Erro ao processar chat no servidor {_portaServidor}: {ex.Message}");
+                        _logger.LogError($"Erro ao processar chat no servidor {_portaServidor}: {ex.Message}");
                     }
                 });
 
@@ -74,26 +94,34 @@ namespace SistemasDistribuidosServer.Servicos
                     {
                         var (chatId, mensagem) = JsonSerializer.Deserialize<(string, Mensagem)>(message);
                         var usuarios = chatId.Split('-');
-                        Console.WriteLine($"Servidor {_portaServidor} recebeu mensagem de {mensagem.Remetente.Login}");
+                        _logger.LogInformation($"Servidor {_portaServidor} recebeu mensagem de {mensagem.Remetente.Login}");
                         
                         var chat = _chatRepository.GetByUsuarios(usuarios[0], usuarios[1]);
                         if (chat != null)
                         {
                             chat.AddMensagem(mensagem);
-                            Console.WriteLine($"Servidor {_portaServidor} sincronizou mensagem de {mensagem.Remetente.Login}");
+                            _logger.LogInformation($"Servidor {_portaServidor} sincronizou mensagem de {mensagem.Remetente.Login}");
                         }
                         else
                         {
-                            Console.WriteLine($"Servidor {_portaServidor} não encontrou chat para {usuarios[0]} e {usuarios[1]}");
+                            _logger.LogWarning($"Servidor {_portaServidor} não encontrou chat para {usuarios[0]} e {usuarios[1]}");
+                            // Criar chat se não existir
+                            chat = _chatRepository.CriarChat(usuarios[0], usuarios[1]);
+                            chat.AddMensagem(mensagem);
+                            _logger.LogInformation($"Servidor {_portaServidor} criou novo chat e adicionou mensagem");
                         }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError($"Erro de deserialização de mensagem no servidor {_portaServidor}: {ex.Message}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Erro ao processar mensagem no servidor {_portaServidor}: {ex.Message}");
+                        _logger.LogError($"Erro ao processar mensagem no servidor {_portaServidor}: {ex.Message}");
                     }
                 });
 
-                Console.WriteLine($"Servidor {_portaServidor} está escutando eventos...");
+                _logger.LogInformation($"Servidor {_portaServidor} está escutando eventos...");
 
                 // Mantém o serviço rodando
                 while (!stoppingToken.IsCancellationRequested)
@@ -101,9 +129,14 @@ namespace SistemasDistribuidosServer.Servicos
                     await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
             }
+            catch (RedisConnectionException ex)
+            {
+                _logger.LogCritical($"Erro de conexão com Redis no servidor {_portaServidor}: {ex.Message}");
+                throw;
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro fatal no EventoListenerService do servidor {_portaServidor}: {ex.Message}");
+                _logger.LogCritical($"Erro fatal no EventoListenerService do servidor {_portaServidor}: {ex.Message}");
                 throw;
             }
         }

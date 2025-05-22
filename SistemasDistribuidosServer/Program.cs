@@ -15,6 +15,7 @@ Console.WriteLine($"Servidor iniciando na porta: {porta}");
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddLogging();
 
 builder.Services.AddCors(options =>
 {
@@ -36,6 +37,8 @@ builder.Services.AddSingleton<INotificadorService, NotificadorService>();
 builder.Services.AddSingleton<IChatService, ChatService>();
 builder.Services.AddSingleton<IEventoService, RedisEventoService>();
 builder.Services.AddHostedService<EventoListenerService>();
+builder.Services.AddSingleton<IEleicoesService, BullyEleicoesService>();
+builder.Services.AddHostedService<EleicoesStartupService>();
 
 // Repositorios
 builder.Services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
@@ -58,5 +61,8 @@ app.UseCors("PermitirFrontend");
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Adiciona endpoint para health check simples
+app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
 
 app.Run();
