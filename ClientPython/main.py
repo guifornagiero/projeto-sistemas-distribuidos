@@ -17,7 +17,7 @@ class User:
         self.seguindo = seguindo or []
 
 class ApiService:
-    BASE_URL = "http://localhost:8080"
+    BASE_URL = "http://localhost:5001"
     
     @staticmethod
     def get_user_by_login(login):
@@ -73,6 +73,53 @@ class ApiService:
         except Exception as e:
             print(f"Erro ao seguir usuário: {e}")
             return False
+            
+    @staticmethod
+    def get_chats_by_user(login):
+        try:
+            response = requests.get(f"{ApiService.BASE_URL}/Chat/GetChatsByUser/{login}")
+            if response.status_code == 200:
+                return response.json()
+            return []
+        except Exception as e:
+            print(f"Erro ao buscar chats: {e}")
+            return []
+    
+    @staticmethod
+    def get_chat(usuario1, usuario2):
+        try:
+            response = requests.get(f"{ApiService.BASE_URL}/Chat/Chat/{usuario1}&{usuario2}")
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Erro ao buscar chat: {e}")
+            return None
+    
+    @staticmethod
+    def send_message(enviando, recebendo, mensagem):
+        try:
+            response = requests.post(
+                f"{ApiService.BASE_URL}/Chat/EnviarMensagem/{enviando}&{recebendo}", 
+                json=mensagem
+            )
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Erro ao enviar mensagem: {e}")
+            return None
+            
+    @staticmethod
+    def get_all_users():
+        try:
+            response = requests.get(f"{ApiService.BASE_URL}/Usuario/GetAll")
+            if response.status_code == 200:
+                return response.json()
+            return []
+        except Exception as e:
+            print(f"Erro ao buscar todos os usuários: {e}")
+            return []
 
 class LoginWindow(QWidget):
     login_successful = pyqtSignal(User)
@@ -313,20 +360,240 @@ class MessageWidget(QFrame):
         except Exception:
             return date_str
 
+class UserChatButton(QPushButton):
+    def __init__(self, user_login, is_active=False, parent=None):
+        super().__init__(parent)
+        self.user_login = user_login
+        self.setText(user_login)
+        self.setMinimumHeight(40)
+        self.setCursor(Qt.PointingHandCursor)
+        self.update_style(is_active)
+        
+    def update_style(self, is_active):
+        if is_active:
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: #E6F2FF;
+                    border-radius: 10px;
+                    padding: 8px;
+                    text-align: left;
+                    font-weight: bold;
+                    border: 2px solid #4A86E8;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: #F5F5F5;
+                    border-radius: 10px;
+                    padding: 8px;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: #E6F2FF;
+                }
+            """)
+
 class ChatPanel(QWidget):
     def __init__(self, current_user):
         super().__init__()
         self.current_user = current_user
-        self.messages = self.get_mock_messages()
+        self.chats = []
+        self.all_users = []
+        self.current_chat = None
+        self.current_chat_partner = None
+        self.messages = []
+        self.showing_all_users = False
         self.init_ui()
+        self.load_chats()
+        self.load_all_users()
         
     def init_ui(self):
-        layout = QVBoxLayout()
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         
+        # Painel da esquerda (lista de chats)
+        self.left_panel = QWidget()
+        self.left_panel.setFixedWidth(250)
+        self.left_panel.setStyleSheet("background-color: white; border-radius: 10px;")
+        left_layout = QVBoxLayout(self.left_panel)
+        
+        # Cabeçalho da lista de chats
+        header_layout = QHBoxLayout()
+        chats_title = QLabel("Conversas")
+        chats_title.setFont(QFont("Arial", 14, QFont.Bold))
+        
+        self.new_chat_btn = QPushButton("Nova")
+        self.new_chat_btn.setFixedWidth(60)
+        self.new_chat_btn.setCursor(Qt.PointingHandCursor)
+        self.new_chat_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4A86E8;
+                color: white;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: #3B78E7;
+            }
+        """)
+        self.new_chat_btn.clicked.connect(self.toggle_users_list)
+        
+        header_layout.addWidget(chats_title)
+        header_layout.addWidget(self.new_chat_btn)
+        
+        # Container para a lista de chats
+        self.chats_container = QWidget()
+        self.chats_layout = QVBoxLayout(self.chats_container)
+        self.chats_layout.setAlignment(Qt.AlignTop)
+        self.chats_layout.setSpacing(8)
+        
+        # Scroll para a lista de chats
+        chats_scroll = QScrollArea()
+        chats_scroll.setWidgetResizable(True)
+        chats_scroll.setWidget(self.chats_container)
+        chats_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        chats_scroll.setStyleSheet("border: none;")
+        
+        left_layout.addLayout(header_layout)
+        left_layout.addWidget(chats_scroll)
+        
+        # Painel da direita (mensagens)
+        self.right_panel = QWidget()
+        self.right_panel.setStyleSheet("background-color: white; border-radius: 10px;")
+        self.right_layout = QVBoxLayout(self.right_panel)
+        
+        # Mensagem inicial
+        self.placeholder = QLabel("Selecione um chat para visualizar as mensagens")
+        self.placeholder.setAlignment(Qt.AlignCenter)
+        self.placeholder.setStyleSheet("color: #666; font-size: 14px;")
+        self.right_layout.addWidget(self.placeholder)
+        
+        # Adicionar painéis ao layout principal
+        self.main_layout.addWidget(self.left_panel)
+        self.main_layout.addWidget(self.right_panel, 1)
+        
+        # Timer para atualização dos chats
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(self.refresh_chats)
+        self.update_timer.start(3000)  # Atualiza a cada 3 segundos
+    
+    def load_chats(self):
+        # Limpar chats existentes
+        self.clear_chats_list()
+        
+        # Buscar chats do usuário
+        chats = ApiService.get_chats_by_user(self.current_user.login)
+        
+        # Filtrar apenas chats que possuem pelo menos uma mensagem
+        self.chats = [chat for chat in chats if chat.get("mensagens") and len(chat.get("mensagens")) > 0]
+        
+        if not self.chats:
+            no_chats = QLabel("Nenhuma conversa ativa encontrada")
+            no_chats.setAlignment(Qt.AlignCenter)
+            no_chats.setStyleSheet("color: #666; font-size: 12px; padding: 10px;")
+            self.chats_layout.addWidget(no_chats)
+            return
+        
+        # Adicionar chats à lista
+        for chat in self.chats:
+            chat_partner = chat["usuario1"] if chat["usuario1"] != self.current_user.login else chat["usuario2"]
+            is_active = self.current_chat and self.current_chat.get("id") == chat["id"]
+            
+            chat_btn = UserChatButton(chat_partner, is_active)
+            chat_btn.clicked.connect(lambda checked, c=chat: self.select_chat(c))
+            self.chats_layout.addWidget(chat_btn)
+    
+    def load_all_users(self):
+        self.all_users = ApiService.get_all_users()
+    
+    def toggle_users_list(self):
+        self.showing_all_users = not self.showing_all_users
+        self.new_chat_btn.setText("Voltar" if self.showing_all_users else "Nova")
+        
+        self.clear_chats_list()
+        
+        if self.showing_all_users:
+            # Mostrar todos os usuários disponíveis
+            other_users = [user for user in self.all_users if user["login"] != self.current_user.login]
+            
+            if not other_users:
+                no_users = QLabel("Nenhum outro usuário encontrado")
+                no_users.setAlignment(Qt.AlignCenter)
+                no_users.setStyleSheet("color: #666; font-size: 12px; padding: 10px;")
+                self.chats_layout.addWidget(no_users)
+                return
+            
+            users_title = QLabel("Selecione um usuário:")
+            users_title.setStyleSheet("font-weight: bold; margin-top: 5px;")
+            self.chats_layout.addWidget(users_title)
+            
+            for user in other_users:
+                user_btn = UserChatButton(user["login"])
+                user_btn.clicked.connect(lambda checked, u=user: self.start_new_chat(u["login"]))
+                self.chats_layout.addWidget(user_btn)
+        else:
+            # Voltar para a lista de chats
+            self.load_chats()
+    
+    def clear_chats_list(self):
+        # Limpar todos os widgets do container de chats
+        for i in reversed(range(self.chats_layout.count())):
+            widget = self.chats_layout.itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
+    
+    def select_chat(self, chat):
+        self.current_chat = chat
+        self.current_chat_partner = chat["usuario1"] if chat["usuario1"] != self.current_user.login else chat["usuario2"]
+        
+        # Atualizar a interface destacando o chat selecionado
+        self.load_chats()
+        
+        # Limpar o painel direito
+        self.clear_right_panel()
+        
+        # Criar a interface de chat
+        self.setup_chat_interface()
+        
+        # Carregar mensagens
+        self.load_messages()
+    
+    def start_new_chat(self, user_login):
+        # Verificar se já existe um chat com este usuário
+        existing_chat = next((chat for chat in self.chats if 
+            chat["usuario1"] == user_login or chat["usuario2"] == user_login), None)
+        
+        if existing_chat:
+            self.select_chat(existing_chat)
+        else:
+            # Enviar uma mensagem inicial para criar o chat
+            mensagem_enviada = ApiService.send_message(self.current_user.login, user_login, "Olá!")
+            
+            if mensagem_enviada:
+                # Aguardar brevemente para o servidor processar
+                QTimer.singleShot(500, lambda: self.refresh_new_chat(user_login))
+            else:
+                # Falha ao enviar mensagem
+                QMessageBox.warning(self, "Erro", "Não foi possível iniciar a conversa.")
+        
+        # Voltar para a lista de chats
+        self.showing_all_users = False
+        self.new_chat_btn.setText("Nova")
+    
+    def clear_right_panel(self):
+        # Remover todos os widgets do painel direito
+        while self.right_layout.count():
+            item = self.right_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+    
+    def setup_chat_interface(self):
         # Título do chat
-        chat_title = QLabel(f"Chat entre {self.current_user.login} e gianluca")
+        chat_title = QLabel(f"Conversa com {self.current_chat_partner}")
         chat_title.setFont(QFont("Arial", 12, QFont.Bold))
-        chat_title.setAlignment(Qt.AlignCenter)
+        chat_title.setStyleSheet("margin-bottom: 10px;")
         
         # Área de mensagens
         self.messages_area = QWidget()
@@ -334,126 +601,121 @@ class ChatPanel(QWidget):
         self.messages_layout.setSpacing(10)
         self.messages_layout.setAlignment(Qt.AlignTop)
         
-        # Adicionar mensagens
-        for message in self.messages:
-            is_from_current_user = message.get("remetente", {}).get("login") == self.current_user.login
-            self.messages_layout.addWidget(MessageWidget(message, is_from_current_user))
-        
         # Área de rolagem para as mensagens
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(self.messages_area)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setWidget(self.messages_area)
+        self.scroll_area.setStyleSheet("border: none; background-color: #F5F5F5;")
         
         # Campo de texto e botão para enviar
         input_layout = QHBoxLayout()
         
         self.message_input = QLineEdit()
-        self.message_input.setPlaceholderText("Digite sua mensagem...")
+        self.message_input.setPlaceholderText(f"Escreva uma mensagem para {self.current_chat_partner}...")
+        self.message_input.setStyleSheet("border: 1px solid #DDD; border-radius: 5px; padding: 8px;")
         self.message_input.returnPressed.connect(self.send_message)
         
         send_button = QPushButton("Enviar")
+        send_button.setCursor(Qt.PointingHandCursor)
+        send_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4A86E8;
+                color: white;
+                border-radius: 5px;
+                padding: 8px 15px;
+            }
+            QPushButton:hover {
+                background-color: #3B78E7;
+            }
+        """)
         send_button.clicked.connect(self.send_message)
         
         input_layout.addWidget(self.message_input)
         input_layout.addWidget(send_button)
         
-        layout.addWidget(chat_title)
-        layout.addWidget(scroll_area)
-        layout.addLayout(input_layout)
+        # Adicionar widgets ao layout do painel direito
+        self.right_layout.addWidget(chat_title)
+        self.right_layout.addWidget(self.scroll_area, 1)
+        self.right_layout.addLayout(input_layout)
+    
+    def load_messages(self):
+        # Limpar mensagens existentes
+        for i in reversed(range(self.messages_layout.count())):
+            widget = self.messages_layout.itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
         
-        self.setLayout(layout)
-        
-        # Rolar para a última mensagem
-        QTimer.singleShot(100, lambda: scroll_area.verticalScrollBar().setValue(
-            scroll_area.verticalScrollBar().maximum()))
+        # Buscar mensagens atualizadas
+        updated_chat = ApiService.get_chat(self.current_user.login, self.current_chat_partner)
+        if updated_chat and "mensagens" in updated_chat:
+            self.messages = updated_chat["mensagens"]
+            
+            if not self.messages:
+                no_messages = QLabel("Nenhuma mensagem ainda. Comece a conversar!")
+                no_messages.setAlignment(Qt.AlignCenter)
+                no_messages.setStyleSheet("color: #666; font-size: 14px; padding: 20px;")
+                self.messages_layout.addWidget(no_messages)
+            else:
+                # Adicionar mensagens à interface
+                for message in self.messages:
+                    is_from_current_user = message.get("remetente", {}).get("login") == self.current_user.login
+                    self.messages_layout.addWidget(MessageWidget(message, is_from_current_user))
+                
+                # Rolar para a última mensagem
+                QTimer.singleShot(100, lambda: self.scroll_area.verticalScrollBar().setValue(
+                    self.scroll_area.verticalScrollBar().maximum()))
     
     def send_message(self):
+        if not self.current_chat_partner:
+            return
+            
         text = self.message_input.text().strip()
         if not text:
             return
         
-        new_message = {
-            "id": len(self.messages) + 1,
-            "remetente": {
-                "id": 999,
-                "nome": self.current_user.nome,
-                "login": self.current_user.login
-            },
-            "texto": text,
-            "enviadaEm": datetime.now().isoformat()
-        }
+        # Enviar mensagem para a API
+        success = ApiService.send_message(self.current_user.login, self.current_chat_partner, text)
         
-        self.messages.append(new_message)
-        self.messages_layout.addWidget(MessageWidget(new_message, True))
-        self.message_input.clear()
-        
-        # Rolar para a última mensagem
-        QTimer.singleShot(100, lambda: self.parent().parent().verticalScrollBar().setValue(
-            self.parent().parent().verticalScrollBar().maximum()))
+        if success:
+            # Limpar campo de texto
+            self.message_input.clear()
+            
+            # Recarregar mensagens
+            self.load_messages()
     
-    def get_mock_messages(self):
-        return [
-            {
-                "id": 1,
-                "remetente": {
-                    "id": 1,
-                    "nome": "Guilherme",
-                    "login": "guifornagiero"
-                },
-                "texto": "asdijajsidajisdjiasjid",
-                "enviadaEm": "2025-05-15T22:12:51.5916872-03:00"
-            },
-            {
-                "id": 2,
-                "remetente": {
-                    "id": 4,
-                    "nome": "Gian",
-                    "login": "gianluca"
-                },
-                "texto": "123912u893nkakdsads-a-sdaijdsasudhi",
-                "enviadaEm": "2025-05-15T22:13:00.3975898-03:00"
-            },
-            {
-                "id": 3,
-                "remetente": {
-                    "id": 1,
-                    "nome": "Guilherme",
-                    "login": "guifornagiero"
-                },
-                "texto": "asdijajsidajisdjiasjid",
-                "enviadaEm": "2025-05-15T22:12:51.5916872-03:00"
-            },
-            {
-                "id": 4,
-                "remetente": {
-                    "id": 4,
-                    "nome": "Gian",
-                    "login": "gianluca"
-                },
-                "texto": "123912u893nkakdsads-a-sdaijdsasudhi",
-                "enviadaEm": "2025-05-15T22:13:00.3975898-03:00"
-            },
-            {
-                "id": 5,
-                "remetente": {
-                    "id": 1,
-                    "nome": "Guilherme",
-                    "login": "guifornagiero"
-                },
-                "texto": "asdijajsidajisdjiasjid",
-                "enviadaEm": "2025-05-15T22:12:51.5916872-03:00"
-            },
-            {
-                "id": 6,
-                "remetente": {
-                    "id": 4,
-                    "nome": "Gian",
-                    "login": "gianluca"
-                },
-                "texto": "123912u893nkakdsads-a-sdaijdsasudhi",
-                "enviadaEm": "2025-05-15T22:13:00.3975898-03:00"
-            }
-        ]
+    def refresh_new_chat(self, user_login):
+        # Buscar o chat recém-criado
+        new_chat = ApiService.get_chat(self.current_user.login, user_login)
+        if new_chat and new_chat.get("mensagens") and len(new_chat.get("mensagens")) > 0:
+            self.current_chat = new_chat
+            self.current_chat_partner = user_login
+            
+            # Limpar o painel direito
+            self.clear_right_panel()
+            
+            # Criar a interface de chat
+            self.setup_chat_interface()
+            
+            # Carregar mensagens
+            self.load_messages()
+            
+            # Atualizar a lista de chats
+            self.load_chats()
+    
+    def refresh_chats(self):
+        # Salvar o chat atual
+        current_chat_id = self.current_chat["id"] if self.current_chat else None
+        
+        # Atualizar lista de chats (filtragem acontece no load_chats)
+        chats = ApiService.get_chats_by_user(self.current_user.login)
+        
+        # Se estiver mostrando a lista de chats, atualizar a interface
+        if not self.showing_all_users:
+            self.load_chats()
+        
+        # Se houver um chat selecionado, atualizar as mensagens
+        if self.current_chat:
+            self.load_messages()
 
 class MainWindow(QMainWindow):
     def __init__(self, user):
@@ -561,9 +823,10 @@ class MainWindow(QMainWindow):
         center_layout.addWidget(timeline_widget, 3)
         
         # 3. Painel de chat
+        self.chat_panel = ChatPanel(self.user)
         chat_widget = QScrollArea()
         chat_widget.setWidgetResizable(True)
-        chat_widget.setWidget(ChatPanel(self.user))
+        chat_widget.setWidget(self.chat_panel)
         
         # Adicionar os três painéis ao layout principal
         main_layout.addWidget(self.notifications_widget, 1)
