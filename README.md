@@ -20,7 +20,7 @@ Este projeto implementa um sistema distribuído resiliente com um mecanismo de e
 
 4. **Novo Coordenador**: O servidor vencedor se torna o novo servidor principal e todos os outros servidores reconhecem o novo líder.
 
-### Canais de Comunicação Redis
+#### Canais de Comunicação Redis
 
 - **eleicao**: Usado para anunciar o início de uma eleição.
 - **vitoria**: Usado para anunciar o vencedor da eleição.
@@ -30,12 +30,12 @@ Este projeto implementa um sistema distribuído resiliente com um mecanismo de e
 
 ## Configuração e Uso
 
-### Pré-requisitos
+#### Pré-requisitos
 - .NET 8.0
 - Redis (porta 6379) para comunicação entre os servidores
 - Bash (para executar os scripts)
 
-### Configuração do Redis
+#### Configuração do Redis
 
 O Redis é essencial para a comunicação entre os servidores neste sistema de eleição. Para configurar o Redis:
 
