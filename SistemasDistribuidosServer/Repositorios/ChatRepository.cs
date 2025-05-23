@@ -22,5 +22,11 @@ namespace SistemasDistribuidosServer.Repositorios
 
             return chat;
         }
+
+        public List<Chat> GetChatsByUser(string userLogin)
+        {
+            List<Chat> chats = _chats.Where(c => c.Usuario1 == userLogin || c.Usuario2 == userLogin).ToList();
+            return chats;
+        }
     }
 }

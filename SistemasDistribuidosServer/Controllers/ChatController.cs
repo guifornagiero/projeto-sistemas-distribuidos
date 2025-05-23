@@ -28,5 +28,12 @@ namespace SistemasDistribuidosServer.Controllers
             Mensagem msg = _chatService.EnviarMensagem(enviando, recebendo, mensagem);
             return Ok(msg);
         }
+
+        [HttpGet("GetChatsByUser/{userLogin}")]
+        public ActionResult<Chat> GetChatsByUser([FromRoute] string userLogin)
+        {
+            List<Chat> chats = _chatService.GetChatsByUser(userLogin);
+            return Ok(chats);
+        }
     }
 }

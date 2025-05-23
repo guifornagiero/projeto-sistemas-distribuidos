@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState } from "react";
-import Chat from "./components/Chat/Chat";
 import TextArea from "./components/Timeline/TextArea";
 import Timeline from "./components/Timeline/Timeline";
 import TimelineService from "./services/TimelineService";
@@ -7,11 +6,14 @@ import { UsuarioContext } from "./contexts/UsuarioContext";
 import NotificationService from "./services/NotificationService";
 import ListaNotificacoes from "./components/Notificacoes/ListaNotificacoes";
 import Sugestoes from "./components/Notificacoes/Sugestoes";
+import ListaChats from "./components/Chat/ListaChats";
+import ChatService from "./services/ChatService";
 
 export default function App() {
     const { usuario } = useContext(UsuarioContext);
     const [posts, setPosts] = useState([]);
     const [notifications, setNotifications] = useState([])
+    const [chats, setChats] = useState([]);
 
     useEffect(() => {
         const getNotifications = async () => {
@@ -45,6 +47,23 @@ export default function App() {
         }, 3000);
     }, []);
 
+    useEffect(() => {
+            const getChats = async () => {
+                try {
+                    const chats = await ChatService.getChatsByUser(usuario.login);
+                    setChats(chats);
+                } catch (error) {
+                    console.error("Erro ao carregar chats:", error);
+                }
+            };
+    
+            getChats();
+            setInterval(() => {
+                getChats();
+            }, 4000);
+        }, []);
+    
+
     return (
         <div className="h-screen max-w-full mx-auto flex flex-row p-3 gap-3">
             {/* 1. Notificações */}
@@ -61,7 +80,7 @@ export default function App() {
 
             {/* 3. Área do chat */}
             <div className="flex-1 border border-gray-300 rounded-2xl max-h-full overflow-auto">
-                <Chat usuario={usuario} />
+                <ListaChats chatss={chats}></ListaChats>
             </div>
         </div>
     );

@@ -7,7 +7,7 @@ namespace SistemasDistribuidosServer.Interfaces.Servicos
     {
         List<Mensagem> GetChat(string usuario1, string usuario2);
         Mensagem EnviarMensagem(string enviando, string recebendo, string mensagem);
-
         Chat GetChatEntity(string usuario1, string usuario2);
+        List<Chat> GetChatsByUser(string userLogin);
     }
 }

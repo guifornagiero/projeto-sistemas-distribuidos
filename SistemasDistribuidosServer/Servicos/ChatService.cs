@@ -50,5 +50,11 @@ namespace SistemasDistribuidosServer.Servicos
             Chat chat = _chatRepository.GetByUsuarios(user1.Login, user2.Login);
             return chat;
         }
+
+        public List<Chat> GetChatsByUser(string userLogin)
+        {
+            List<Chat> chats = _chatRepository.GetChatsByUser(userLogin);
+            return chats;
+        }
     }
 }

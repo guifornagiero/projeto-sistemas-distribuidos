@@ -7,5 +7,6 @@ namespace SistemasDistribuidosServer.Interfaces.Repositorios
     {
         Chat GetByUsuarios(string usuario1, string usuario2);
         Chat CriarChat(string usuario1, string usuario2);
+        List<Chat> GetChatsByUser(string userLogin);
     }
 }
