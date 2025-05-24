@@ -76,47 +76,13 @@ docker-compose up -d
 
 O Redis é essencial para a comunicação entre os servidores neste sistema de eleição. Para configurar o Redis:
 
-1. Execute o script de configuração automática:
-   ```bash
-   chmod +x setup-redis.sh
-   ./setup-redis.sh
+1. O Redis é executado automaticamente via docker junto com o nginx
+
+   ```
+   cd Proxy
+   docker-compose up -d
    ```
 
-   Este script irá:
-   - Verificar se o Redis está instalado e instalá-lo se necessário
-   - Iniciar o servidor Redis se ele não estiver rodando
-   - Verificar as configurações básicas do Redis
-
-2. Ou configure manualmente:
-   - Instale o Redis: 
-     - macOS: `brew install redis`
-     - Ubuntu: `sudo apt install redis-server`
-   - Inicie o Redis:
-     - macOS: `brew services start redis`
-     - Ubuntu: `sudo systemctl start redis-server`
-   - Verifique se o Redis está rodando: `redis-cli ping` (deve retornar "PONG")
-
-### Executando o Sistema
-
-1. Iniciando os servidores:
-   ```bash
-   chmod +x start-servers.sh
-   ./start-servers.sh
-   ```
-
-2. Testando o sistema de eleição:
-   ```bash
-   chmod +x test-election.sh
-   ./test-election.sh
-   ```
-
-O script oferece as seguintes opções:
-1. Iniciar todos os servidores
-2. Verificar o status dos servidores
-3. Derrubar o servidor principal (porta 5001)
-4. Derrubar um servidor secundário (porta 5002)
-5. Derrubar outro servidor secundário (porta 5003)
-6. Forçar eleição em um servidor específico
 
 ## Endpoints para Monitoramento
 
@@ -140,17 +106,3 @@ O sistema registra eventos importantes relacionados à eleição, incluindo:
 
 Estes logs ajudam a entender o processo de eleição e a resolver problemas.
 
-## Solução de Problemas
-
-Se encontrar problemas ao executar o sistema, verifique:
-
-1. **Conexão com o Redis**: 
-   - Certifique-se de que o Redis está rodando: `redis-cli ping`
-   - Verifique a configuração em `appsettings.json` para garantir que o endereço do Redis esteja correto
-
-2. **Portas ocupadas**:
-   - Verifique se as portas 5001, 5002 e 5003 estão disponíveis
-   - Use `lsof -i :PORTA` para verificar se algum processo já está usando a porta
-
-3. **Problemas de permissão**:
-   - Certifique-se de que os scripts têm permissão de execução: `chmod +x *.sh`
