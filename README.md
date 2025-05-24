@@ -27,7 +27,12 @@ Para nosso cliente em Python, utilizamos as libs 'PyQt5' para a visualização d
 Nosso servidor é construído em .NET 8.0, e é utilizado no modelo de API REST. Nele, possuímos todo o processamento e armazenamento de dados (tendo em vista que trabalhamos com eles em memória - arrays e listas). Nossa arquitetura está orientada a uma separação em camadas, e disponibiliza serviços de Usuários, Timeline, Chat e Notificações - além da eleição por bullying explicada abaixo.
 
 ##### Para rodar o servidor .NET
+Para rodar o servidor, é necessário possuir o Redis em sua máquina, como explicado abaixo - pode ser subido em um container Docker. Nota-se que para rodar o server, passamos a url/porta que queremos subí-lo, para que possam existir diferente servidores (em portas diferentes) da mesma aplicação, que são orquestrados por um Proxy Nginx. Para rodá-lo, utilize o comando ou o script PowerShell 'start-servers.sh'
+1. dotnet run --no-build --project SistemasDistribuidosServer/SistemasDistribuidosServer.csproj --urls=http://localhost:5001””
+2. ./start-servers.sh
 
+### Proxy
+Nosso proxy Nginx, que também roda com um container Docker, se responsabiliza por orquestrar as requisições nos diferentes servidores (portas 5001, 5002 e 5003).
 
 ### Algoritmo de Eleição por Bullying
 
