@@ -34,6 +34,8 @@ Para rodar o servidor, é necessário possuir o Redis em sua máquina, como expl
 ### Proxy
 Nosso proxy Nginx, que também roda com um container Docker, se responsabiliza por orquestrar as requisições nos diferentes servidores (portas 5001, 5002 e 5003).
 
+--------------------------------------------------------------------------------------------
+
 ### Algoritmo de Eleição por Bullying
 
 1. **Inicialização**: O servidor com a menor porta (5001) é definido como o servidor principal.
