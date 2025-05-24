@@ -1,4 +1,4 @@
-# Sistema de Eleição por Bullying
+# Projeto Sistemas Distribuidos
 
 ## Visão Geral
 
@@ -57,20 +57,6 @@ docker-compose up -d
 
 4. **Novo Coordenador**: O servidor vencedor se torna o novo servidor principal e todos os outros servidores reconhecem o novo líder.
 
-#### Canais de Comunicação Redis
-
-- **eleicao**: Usado para anunciar o início de uma eleição.
-- **vitoria**: Usado para anunciar o vencedor da eleição.
-- **heartbeat**: Usado para verificar se o servidor principal está ativo.
-- **voto**: Usado para enviar votos durante o processo de eleição.
-- **servidor_ativo**: Usado para manter um registro dos servidores ativos.
-
-## Configuração e Uso
-
-#### Pré-requisitos
-- .NET 8.0
-- Redis (porta 6379) para comunicação entre os servidores
-- Bash (para executar os scripts)
 
 #### Configuração do Redis
 
