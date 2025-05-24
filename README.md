@@ -6,6 +6,29 @@ Este projeto implementa um sistema distribuído resiliente com um mecanismo de e
 
 ## Como Funciona
 
+### Clientes
+
+#### Cliente em JavaScript
+Para nosso cliente em JavaScript, utilizamos do framework React.js para fazer uma página Web funcional que atende a todos os requisitos propostos. Ele se comunica com nosso servidor através de requisições HTTP, e atualiza os estados dos componentes em tela a partir das responses que chegam.
+
+##### Para rodar o cliente JavaScript
+É necessário possuir o 20.15.0 ou versões mais atuais instalado.
+1. npm install
+2. npm run dev
+
+#### Cliente em Python
+Para nosso cliente em Python, utilizamos as libs 'PyQt5' para a visualização de uma interface interativa e 'requests' para a comunicação HTTP com o servidor.
+
+##### Para rodar o cliente em Python
+É necessário possuir o compilador Python instalado em sua máquina. Ao rodar o comando abaixo, o gerenciador se responsabiliza por baixar as dependências de bibliotecas, caso já não estejam instaladas.
+1. python run.py
+
+### Servidor
+Nosso servidor é construído em .NET 8.0, e é utilizado no modelo de API REST. Nele, possuímos todo o processamento e armazenamento de dados (tendo em vista que trabalhamos com eles em memória - arrays e listas). Nossa arquitetura está orientada a uma separação em camadas, e disponibiliza serviços de Usuários, Timeline, Chat e Notificações - além da eleição por bullying explicada abaixo.
+
+##### Para rodar o servidor .NET
+
+
 ### Algoritmo de Eleição por Bullying
 
 1. **Inicialização**: O servidor com a menor porta (5001) é definido como o servidor principal.
